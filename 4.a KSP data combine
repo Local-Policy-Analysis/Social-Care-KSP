@@ -24,7 +24,6 @@ ASCFR <- ASCFR %>%
     rename(ASC_ASCFR = 'Cash Terms')
 
 
-
 # Join the dataframes
 combined_data <- revenue_data_imputed %>%
     full_join(csp, by = c("ons_code", "year")) %>%  
@@ -40,6 +39,11 @@ combined_data <- revenue_data_imputed %>%
                RS_NCE_Planninganddevelopment + RS_NCE_Fireandrescueservices + RS_NCE_Eduservices_adj2nosc + 
                RS_NCE_Centralservices + RS_NCE_Otherservices + RS_Other_IntegratedTransportAu + 
                RS_Other_WasteDisposalAuthorit + RS_NCE_PublicHealth) %>%  
+    mutate(TSE = RS_NCE_AdultSocialCare + RS_NCE_ChildrenSocialCare_adj2 + RS_NCE_Highwaysandtransportse + 
+               RS_NCE_HousingservicesGFRAon + RS_NCE_Culturalandrelatedserv + RS_NCE_Environmentalandregulat +
+               RS_NCE_Planninganddevelopment + RS_NCE_Fireandrescueservices + RS_NCE_Educationservices_adj2 + 
+               RS_NCE_Centralservices + RS_NCE_Otherservices + RS_Other_IntegratedTransportAu + 
+               RS_NCE_Policeservices + RS_NCE_PublicHealth) %>%
     mutate(authority = coalesce(authority.x, authority.y, authority)) %>%
     select(authority, 
            year, 
@@ -53,8 +57,8 @@ combined_data <- revenue_data_imputed %>%
            S251_CSC,  
            RS_NCE_AdultSocialCare,  
            RS_NCE_ChildrenSocialCare_adj2,  
-           GNSS,  
-           RS_NCE_TOTALSERVICEEXPENDITURE,  
+           GNSS, 
+           TSE,  
            RS_NCE_Highwaysandtransportse,  
            RS_NCE_HousingservicesGFRAon,  
            RS_NCE_Culturalandrelatedserv,  
@@ -85,7 +89,7 @@ Eng_data <- combined_data %>%
         ASC_RO = sum(RS_NCE_AdultSocialCare, na.rm = TRUE),
         CSC_RO = sum(RS_NCE_ChildrenSocialCare_adj2, na.rm = TRUE),
         GNSS = sum(GNSS, na.rm = TRUE),
-        TSE = sum(RS_NCE_TOTALSERVICEEXPENDITURE, na.rm = TRUE),  
+        TSE = sum(TSE, na.rm = TRUE),  
     ) %>%
     select(year, 
            adult_pop, 
