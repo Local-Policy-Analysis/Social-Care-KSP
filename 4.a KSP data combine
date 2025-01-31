@@ -34,16 +34,16 @@ combined_data <- revenue_data_imputed %>%
     full_join(population_data %>% 
                   rename(ons_code = ecode), 
               by = c("ons_code" = "ons_code", "year")) %>%  
-    mutate(GNSS = RS_NCE_AdultSocialCare + RS_NCE_ChildrenSocialCare_adj2 + RS_NCE_Highwaysandtransportse + 
-               RS_NCE_HousingservicesGFRAon + RS_NCE_Culturalandrelatedserv + RS_NCE_Environmentalandregulat +
-               RS_NCE_Planninganddevelopment + RS_NCE_Fireandrescueservices + RS_NCE_Eduservices_adj2nosc + 
-               RS_NCE_Centralservices + RS_NCE_Otherservices + RS_Other_IntegratedTransportAu + 
-               RS_Other_WasteDisposalAuthorit + RS_NCE_PublicHealth) %>%  
-    mutate(TSE = RS_NCE_AdultSocialCare + RS_NCE_ChildrenSocialCare_adj2 + RS_NCE_Highwaysandtransportse + 
-               RS_NCE_HousingservicesGFRAon + RS_NCE_Culturalandrelatedserv + RS_NCE_Environmentalandregulat +
-               RS_NCE_Planninganddevelopment + RS_NCE_Fireandrescueservices + RS_NCE_Educationservices_adj2 + 
-               RS_NCE_Centralservices + RS_NCE_Otherservices + RS_Other_IntegratedTransportAu + 
-               RS_NCE_Policeservices + RS_NCE_PublicHealth) %>%
+    mutate(GNSS = rowSums(select(., RS_NCE_AdultSocialCare, RS_NCE_ChildrenSocialCare_adj2, RS_NCE_Highwaysandtransportse, 
+                                 RS_NCE_HousingservicesGFRAon, RS_NCE_Culturalandrelatedserv, RS_NCE_Environmentalandregulat,
+                                 RS_NCE_Planninganddevelopment, RS_NCE_Fireandrescueservices, RS_NCE_Eduservices_adj2nosc, 
+                                 RS_NCE_Centralservices, RS_NCE_Otherservices, RS_Other_IntegratedTransportAu, 
+                                 RS_Other_WasteDisposalAuthorit, RS_NCE_PublicHealth), na.rm = TRUE)) %>%  
+    mutate(TSE = rowSums(select(., RS_NCE_AdultSocialCare, RS_NCE_ChildrenSocialCare_adj2, RS_NCE_Highwaysandtransportse, 
+                                RS_NCE_HousingservicesGFRAon, RS_NCE_Culturalandrelatedserv, RS_NCE_Environmentalandregulat,
+                                RS_NCE_Planninganddevelopment, RS_NCE_Fireandrescueservices, RS_NCE_Educationservices_adj2, 
+                                RS_NCE_Centralservices, RS_NCE_Otherservices, RS_Other_IntegratedTransportAu, 
+                                RS_NCE_Policeservices, RS_NCE_PublicHealth), na.rm = TRUE)) %>%
     mutate(authority = coalesce(authority.x, authority.y, authority)) %>%
     select(authority, 
            year, 
@@ -59,6 +59,7 @@ combined_data <- revenue_data_imputed %>%
            RS_NCE_ChildrenSocialCare_adj2,  
            GNSS, 
            TSE,  
+           RS_NCE_TOTALSERVICEEXPENDITURE,  
            RS_NCE_Highwaysandtransportse,  
            RS_NCE_HousingservicesGFRAon,  
            RS_NCE_Culturalandrelatedserv,  
