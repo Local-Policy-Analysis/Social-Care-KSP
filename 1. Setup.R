@@ -9,7 +9,7 @@
 # Housekeeping
   cat("\014")                 # Clears the console
   rm(list = ls())             # Remove all variables of the work space
-
+  options(scipen=999)
 # Working directory 
   wd <- "~/GitHub/Social-Care-KSP/"
   setwd(wd)
@@ -17,7 +17,7 @@
   
 #### PACKAGES ----
 cat("INSTALLING PACKAGES & LOADING LIBRARIES... \n\n", sep = "")
-packages <- c("tidyverse", "stringr", "readxl", "ggplot2", "generics", "tidyr", "vctrs", "withr", "pacman", "purrr", "readODS", "ggmap", "scales", "plotly", "openxlsx", "reshape2", "datadictionary", "cowplot", "rvest", "xml2") # list of packages to load
+packages <- c("tidyverse", "stringr", "readxl", "ggplot2", "generics", "tidyr", "vctrs", "withr", "pacman", "purrr", "readODS", "ggmap", "scales", "plotly", "openxlsx", "reshape2", "datadictionary", "cowplot", "rvest", "xml2", "ggpattern", "scales", "svglite", "writexl") # list of packages to load
 n_packages <- length(packages) # count how many packages are required
 
 new.pkg <- packages[!(packages %in% installed.packages())] # determine which packages aren't installed

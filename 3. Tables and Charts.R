@@ -10,16 +10,29 @@ principal_authorities <- c("SC", "UA", "MD", "LB", "SD")
 
 ## CHARTS (2015 ref) ----
     ## 1)	Bar chart of real terms ASC NCE: ASC (RO), ASC (ASC-FR) and ASC (ASC-FR + NHS) ----
+    plot(ASC_bar)
     ## 2)	Indexed real terms ASC NCE: ASC (RO), ASC (ASC-FR), ASC (ASC-FR + NHS) and ASC-FR per capita ----
-    ## 3)	Bar chart of real terms ASC NCE: CSC (RO) and CSC (S251) ----
+    plot(ASC_line)
+    ## 3)	Bar chart of real terms CSC NCE: CSC (RO) and CSC (S251) ----
+    plot(CSC_bar)
     ## 4)	Indexed real terms CSC NCE: CSC (RO), CSC (S251) and CSC (S251) per capita ----
+    plot(CSC_line)
     ## 5)	Compound bar chart of real terms Total Social Care NCE (RO) ----
+    plot(SC_bar)
     ## 6)	Indexed real terms Total Social Care NCE (RO) ----
+    plot(SC_line)
     ## 7)	Indexed real terms total social care expenditure, GNSS and TSE: TSC, ASC, CSC, TSE and GNSS ----
+    plot(LG_spend_line)
     ## 8)	Indexed real terms social care expenditure and CSP: CSC, TSC, ASC and CSP ----
+    plot()
     ## 9)	Compound bar chart of Social care NCE as a proportion of GNSS: ASC and CSC ----
+    plot(SC_perc_GNSS)
     ## 10)	Compound bar chart of Social care NCE as a proportion of TSE: ASC and CSC ----
+    plot(SC_per_TSE)
     ## 11)	Compound bar chart of Social care NCE as a proportion of CSP: ASC and CSC ----
+    plot(SC_perc_CSP)
+
+
 
 ## TABLES (2010 ref) ----
 
