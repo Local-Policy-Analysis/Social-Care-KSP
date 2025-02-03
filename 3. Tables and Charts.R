@@ -24,15 +24,15 @@ principal_authorities <- c("SC", "UA", "MD", "LB", "SD")
     ## 7)	Indexed real terms total social care expenditure, GNSS and TSE: TSC, ASC, CSC, TSE and GNSS ----
     plot(LG_spend_line)
     ## 8)	Indexed real terms social care expenditure and CSP: CSC, TSC, ASC and CSP ----
-    plot()
+    plot(G_spend_line)
     ## 9)	Compound bar chart of Social care NCE as a proportion of GNSS: ASC and CSC ----
     plot(SC_perc_GNSS)
     ## 10)	Compound bar chart of Social care NCE as a proportion of TSE: ASC and CSC ----
-    plot(SC_per_TSE)
+    plot(SC_perc_TSE)
     ## 11)	Compound bar chart of Social care NCE as a proportion of CSP: ASC and CSC ----
     plot(SC_perc_CSP)
 
-
+plot(LG_spend_line_all)
 
 ## TABLES (2010 ref) ----
 

@@ -110,7 +110,9 @@ variable_colours_LGF <- c(
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "bottom",
-            plot.title = element_text(hjust = 0.5))
+            plot.title = element_text(hjust = 0.5),
+            panel.grid.major.x = element_blank(),  
+            panel.grid.minor.x = element_blank())
   
   ## ASC line (figure 2) ----
   ASC_line <- ggplot(Eng_data %>% 
@@ -154,7 +156,9 @@ variable_colours_LGF <- c(
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "bottom",
-            plot.title = element_text(hjust = 0.5))
+            plot.title = element_text(hjust = 0.5),
+            panel.grid.major.x = element_blank(),  
+            panel.grid.minor.x = element_blank())
   
   
   
@@ -192,7 +196,9 @@ variable_colours_LGF <- c(
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "bottom",
-            plot.title = element_text(hjust = 0.5))
+            plot.title = element_text(hjust = 0.5),
+            panel.grid.major.x = element_blank(),  
+            panel.grid.minor.x = element_blank())
   
   ## CSC line (figure 4) ----
   CSC_line <- ggplot(Eng_data %>% 
@@ -234,7 +240,9 @@ variable_colours_LGF <- c(
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "bottom",
-            plot.title = element_text(hjust = 0.5))
+            plot.title = element_text(hjust = 0.5),
+            panel.grid.major.x = element_blank(),  
+            panel.grid.minor.x = element_blank())
   
   
 
@@ -266,7 +274,9 @@ variable_colours_LGF <- c(
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "bottom",
-            plot.title = element_text(hjust = 0.5)) +
+            plot.title = element_text(hjust = 0.5),
+            panel.grid.major.x = element_blank(),  
+            panel.grid.minor.x = element_blank()) +
       geom_text(aes(label = round(value, 1)), 
                 position = position_stack(vjust = 0.5), 
                 color = "white", 
@@ -310,255 +320,267 @@ variable_colours_LGF <- c(
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1),
             legend.position = "bottom",
-            plot.title = element_text(hjust = 0.5))
+            plot.title = element_text(hjust = 0.5),
+            panel.grid.major.x = element_blank(),  
+            panel.grid.minor.x = element_blank())
   
   
   
 #### LG spend graphs ####
-## LG spend line (figure 7) ----
-LG_spend_line <- ggplot(Eng_data %>% 
+  ## LG spend line (figure 7) ----
+  LG_spend_line <- ggplot(Eng_data %>% 
+                              filter(year >= '2015/16' & year <= '2023/24') %>%
+                              mutate(
+                                  ASC_RO = ASC_RO / deflator_ratio_2023_24,
+                                  CSC_RO = CSC_RO / deflator_ratio_2023_24,
+                                  SC_RO = ASC_RO + CSC_RO,
+                                  TSE = TSE / deflator_ratio_2023_24,
+                                  GNSS = GNSS / deflator_ratio_2023_24,  
+                                  CSP = (CSP * 1000) / deflator_ratio_2023_24
+                              ) %>%
+                              pivot_longer(cols = c(ASC_RO, CSC_RO, SC_RO, TSE, GNSS, CSP),
+                                           names_to = "variable", values_to = "value") %>%
+                              group_by(variable) %>%
+                              mutate(indexed_value = value / value[year == '2015/16'] * 100,  
+                                     percentage_increase = (indexed_value[year == '2023/24'] - 100)),
+                          aes(x = year, 
+                              y = indexed_value, 
+                              color = variable, 
+                              linetype = variable,  
+                              group = variable)) +
+      geom_line(linewidth = 1) +  
+      geom_text(data = . %>% filter(year == '2023/24'),
+                aes(label = ifelse(percentage_increase > 0, 
+                                   paste0("+", round(percentage_increase, 1), "%"), 
+                                   paste0(round(percentage_increase, 1), "%"))),
+                hjust = -0.1, vjust = 0.5, size = 3, show.legend = FALSE) +
+    scale_y_continuous(limits = c(90, 140), breaks = seq(90, 140, by = 10)) +
+      scale_color_manual(values = variable_colours,  
+                         labels = variable_names) +
+      scale_linetype_manual(values = c("ASC_RO" = "solid", 
+                                       "CSC_RO" = "solid", 
+                                       "SC_RO" = "solid", 
+                                       "TSE" = "dotdash",  
+                                       "GNSS" = "dotdash",  
+                                       "CSP" = "dotdash"),  
+                            labels = variable_names) +
+      labs(title = "Indexed real terms social care and total LG spend: RO, 
+  All principal LAs, 2015/16 to 2023/24, (2015/16 = 100)",
+           x = NULL,
+           y = "2015/16 = 100",
+           color = NULL,
+           linetype = NULL) +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "bottom",
+            plot.title = element_text(hjust = 0.5),
+            panel.grid.major.x = element_blank(),  
+            panel.grid.minor.x = element_blank())
+  
+  
+  ## SC as % of GNSS (figure 9) ----
+  SC_perc_GNSS <- ggplot(Eng_data %>% 
+                             filter(year >= '2015/16' & year <= '2023/24') %>%
+                             mutate(
+                                 ASC_perc_GNSS = ASC_RO / GNSS,  
+                                 CSC_perc_GNSS = CSC_RO / GNSS,  
+                                 SC_perc_GNSS = (ASC_RO + CSC_RO) / GNSS,
+                             ) %>%
+                             pivot_longer(cols = c(ASC_perc_GNSS, CSC_perc_GNSS),
+                                          names_to = "variable", values_to = "value") %>%
+                             mutate(variable = factor(variable, 
+                                                      levels = c("ASC_perc_GNSS", 
+                                                                 "CSC_perc_GNSS"))),  
+                         aes(x = year, y = value, fill = variable)) +
+      geom_bar(stat = "identity") +
+      scale_y_continuous(limits = c(0, 0.6), breaks = seq(0, 0.6, by = 0.1), labels = percent_format(accuracy = 1)) +
+      scale_fill_manual(values = variable_colours,  
+                        labels = variable_names) +
+      labs(title = "Social Care NCE as a proportion of General Net Service Spend: RO, 
+  All principal LAs, 2015-16 to 2023-24",
+           x = NULL,
+           y = "% of GNSS",
+           fill = NULL,  
+           pattern = NULL) +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "bottom",
+            plot.title = element_text(hjust = 0.5),
+            panel.grid.major.x = element_blank(),  
+            panel.grid.minor.x = element_blank()) +
+      geom_text(aes(label = paste0(round(value * 100), "%")),  
+                position = position_stack(vjust = 0.5), 
+                color = "white", 
+                fontface = "bold") +
+      geom_text(aes(x = year, y = SC_perc_GNSS, label = paste0(round(SC_perc_GNSS * 100), "%")),  
+                vjust = -0.5,
+                fontface = "bold")
+  
+  ## SC as % of TSE (figure 10) ----
+  SC_perc_TSE <- ggplot(Eng_data %>% 
+                             filter(year >= '2015/16' & year <= '2023/24') %>%
+                             mutate(
+                                 ASC_perc_TSE = ASC_RO / TSE,  
+                                 CSC_perc_TSE = CSC_RO / TSE,  
+                                 SC_perc_TSE = (ASC_RO + CSC_RO) / TSE,
+                             ) %>%
+                             pivot_longer(cols = c(ASC_perc_TSE, CSC_perc_TSE),
+                                          names_to = "variable", values_to = "value") %>%
+                             mutate(variable = factor(variable, 
+                                                      levels = c("ASC_perc_TSE", 
+                                                                 "CSC_perc_TSE"))),  
+                         aes(x = year, y = value, fill = variable)) +
+      geom_bar(stat = "identity") +
+      scale_fill_manual(values = variable_colours,  
+                        labels = variable_names) +
+      scale_y_continuous(limits = c(0, 0.6), breaks = seq(0, 0.6, by = 0.1), labels = percent_format(accuracy = 1)) +  # Format y-axis labels as percentages
+      labs(title = "Social Care NCE as a proportion of Total Service Expenditure: RO, 
+  All principal LAs, 2015-16 to 2023-24",
+           x = NULL,
+           y = "% of TSE",
+           fill = NULL,  
+           pattern = NULL) +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "bottom",
+            plot.title = element_text(hjust = 0.5),
+            panel.grid.major.x = element_blank(),  
+            panel.grid.minor.x = element_blank()) +
+      geom_text(aes(label = paste0(round(value * 100), "%")),  
+                position = position_stack(vjust = 0.5), 
+                color = "white", 
+                fontface = "bold") +
+      geom_text(aes(x = year, y = SC_perc_TSE, label = paste0(round(SC_perc_TSE * 100), "%")),  
+                vjust = -0.5,
+                fontface = "bold")
+  
+  
+  ## SC as % of CSP (figure 11) ----
+  SC_perc_CSP <- ggplot(Eng_data %>% 
                             filter(year >= '2015/16' & year <= '2023/24') %>%
                             mutate(
-                                ASC_RO = ASC_RO / deflator_ratio_2023_24,
-                                CSC_RO = CSC_RO / deflator_ratio_2023_24,
-                                SC_RO = ASC_RO + CSC_RO,
-                                TSE = TSE / deflator_ratio_2023_24,
-                                GNSS = GNSS / deflator_ratio_2023_24,  
-                                CSP = (CSP * 1000) / deflator_ratio_2023_24
+                                ASC_perc_CSP = ASC_RO / (CSP),  
+                                CSC_perc_CSP = CSC_RO / (CSP),  
+                                SC_perc_CSP = (ASC_RO + CSC_RO) / (CSP),
                             ) %>%
-                            pivot_longer(cols = c(ASC_RO, CSC_RO, SC_RO, TSE, GNSS, CSP),
+                            pivot_longer(cols = c(ASC_perc_CSP, CSC_perc_CSP),
                                          names_to = "variable", values_to = "value") %>%
-                            group_by(variable) %>%
-                            mutate(indexed_value = value / value[year == '2015/16'] * 100,  
-                                   percentage_increase = (indexed_value[year == '2023/24'] - 100)),
-                        aes(x = year, 
-                            y = indexed_value, 
-                            color = variable, 
-                            linetype = variable,  
-                            group = variable)) +
-    geom_line(linewidth = 1) +  
-    geom_text(data = . %>% filter(year == '2023/24'),
-              aes(label = ifelse(percentage_increase > 0, 
-                                 paste0("+", round(percentage_increase, 1), "%"), 
-                                 paste0(round(percentage_increase, 1), "%"))),
-              hjust = -0.1, vjust = 0.5, size = 3, show.legend = FALSE) +
-  scale_y_continuous(limits = c(90, 140), breaks = seq(90, 140, by = 10)) +
-    scale_color_manual(values = variable_colours,  
-                       labels = variable_names) +
-    scale_linetype_manual(values = c("ASC_RO" = "solid", 
-                                     "CSC_RO" = "solid", 
-                                     "SC_RO" = "solid", 
-                                     "TSE" = "dotdash",  
-                                     "GNSS" = "dotdash",  
-                                     "CSP" = "dotdash"),  
-                          labels = variable_names) +
-    labs(title = "Indexed real terms social care and total LG spend: RO, 
-All principal LAs, 2015/16 to 2023/24, (2015/16 = 100)",
-         x = NULL,
-         y = "2015/16 = 100",
-         color = NULL,
-         linetype = NULL) +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1),
-          legend.position = "bottom",
-          plot.title = element_text(hjust = 0.5))
-
-
-## SC as % of GNSS (figure 9) ----
-SC_perc_GNSS <- ggplot(Eng_data %>% 
-                           filter(year >= '2015/16' & year <= '2023/24') %>%
-                           mutate(
-                               ASC_perc_GNSS = ASC_RO / GNSS,  
-                               CSC_perc_GNSS = CSC_RO / GNSS,  
-                               SC_perc_GNSS = (ASC_RO + CSC_RO) / GNSS,
-                           ) %>%
-                           pivot_longer(cols = c(ASC_perc_GNSS, CSC_perc_GNSS),
-                                        names_to = "variable", values_to = "value") %>%
-                           mutate(variable = factor(variable, 
-                                                    levels = c("ASC_perc_GNSS", 
-                                                               "CSC_perc_GNSS"))),  
-                       aes(x = year, y = value, fill = variable)) +
-    geom_bar(stat = "identity") +
-    scale_y_continuous(limits = c(0, 0.6), breaks = seq(0, 0.6, by = 0.2), labels = percent_format(accuracy = 1)) +
-    scale_fill_manual(values = variable_colours,  
-                      labels = variable_names) +
-    labs(title = "Social Care NCE as a proportion of General Net Service Spend: RO, 
-All principal LAs, 2015-16 to 2023-24",
-         x = NULL,
-         y = "% of GNSS",
-         fill = NULL,  
-         pattern = NULL) +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1),
-          legend.position = "bottom",
-          plot.title = element_text(hjust = 0.5)) +
-    geom_text(aes(label = paste0(round(value * 100), "%")),  
-              position = position_stack(vjust = 0.5), 
-              color = "white", 
-              fontface = "bold") +
-    geom_text(aes(x = year, y = SC_perc_GNSS, label = paste0(round(SC_perc_GNSS * 100), "%")),  
-              vjust = -0.5,
-              fontface = "bold")
-
-## SC as % of TSE (figure 10) ----
-SC_perc_TSE <- ggplot(Eng_data %>% 
-                           filter(year >= '2015/16' & year <= '2023/24') %>%
-                           mutate(
-                               ASC_perc_TSE = ASC_RO / TSE,  
-                               CSC_perc_TSE = CSC_RO / TSE,  
-                               SC_perc_TSE = (ASC_RO + CSC_RO) / TSE,
-                           ) %>%
-                           pivot_longer(cols = c(ASC_perc_TSE, CSC_perc_TSE),
-                                        names_to = "variable", values_to = "value") %>%
-                           mutate(variable = factor(variable, 
-                                                    levels = c("ASC_perc_TSE", 
-                                                               "CSC_perc_TSE"))),  
-                       aes(x = year, y = value, fill = variable)) +
-    geom_bar(stat = "identity") +
-    scale_fill_manual(values = variable_colours,  
-                      labels = variable_names) +
-    scale_y_continuous(limits = c(0, 0.4), breaks = seq(0, 0.4, by = 0.1), labels = percent_format(accuracy = 1)) +  # Format y-axis labels as percentages
-    labs(title = "Social Care NCE as a proportion of Total Service Expenditure: RO, 
-All principal LAs, 2015-16 to 2023-24",
-         x = NULL,
-         y = "% of TSE",
-         fill = NULL,  
-         pattern = NULL) +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1),
-          legend.position = "bottom",
-          plot.title = element_text(hjust = 0.5)) +
-    geom_text(aes(label = paste0(round(value * 100), "%")),  
-              position = position_stack(vjust = 0.5), 
-              color = "white", 
-              fontface = "bold") +
-    geom_text(aes(x = year, y = SC_perc_TSE, label = paste0(round(SC_perc_TSE * 100), "%")),  
-              vjust = -0.5,
-              fontface = "bold")
-
-
-## SC as % of CSP (figure 11) ----
-SC_perc_CSP <- ggplot(Eng_data %>% 
-                          filter(year >= '2015/16' & year <= '2023/24') %>%
-                          mutate(
-                              ASC_perc_CSP = ASC_RO / (CSP),  
-                              CSC_perc_CSP = CSC_RO / (CSP),  
-                              SC_perc_CSP = (ASC_RO + CSC_RO) / (CSP),
-                          ) %>%
-                          pivot_longer(cols = c(ASC_perc_CSP, CSC_perc_CSP),
-                                       names_to = "variable", values_to = "value") %>%
-                          mutate(variable = factor(variable, 
-                                                   levels = c("ASC_perc_CSP", 
-                                                              "CSC_perc_CSP"))),  
-                      aes(x = year, y = value, fill = variable)) +
-    geom_bar(stat = "identity") +
-    scale_fill_manual(values = variable_colours,  
-                      labels = variable_names) +
-    scale_y_continuous(limits = c(0, 0.8), breaks = seq(0, 0.8, by = 0.2), labels = percent_format(accuracy = 1)) +  # Format y-axis labels as percentages
-    labs(title = "Social Care NCE as a proportion of Core Spending Power, 
-All principal LAs, 2015-16 to 2023-24",
-         x = NULL,
-         y = "% of CSP",
-         fill = NULL,  
-         pattern = NULL) +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1),
-          legend.position = "bottom",
-          plot.title = element_text(hjust = 0.5)) +
-    geom_text(aes(label = paste0(round(value * 100), "%")),  
-              position = position_stack(vjust = 0.5), 
-              color = "white", 
-              fontface = "bold") +
-    geom_text(aes(x = year, y = SC_perc_CSP, label = paste0(round(SC_perc_CSP * 100), "%")),  
-              vjust = -0.5,
-              fontface = "bold")
-
-## LG spend line for all services (figure NEW) ----
-LG_spend_line_all <- ggplot(Eng_data_LGF %>% 
-                                filter(year >= '2015/16' & year <= '2023/24') %>%
-                                mutate(
-                                    ASC_RO = ASC_RO / deflator_ratio_2023_24,
-                                    CSC_RO = CSC_RO / deflator_ratio_2023_24,
-                                    GNSS = GNSS / deflator_ratio_2023_24, 
-                                    Trans_RO = Trans_RO / deflator_ratio_2023_24,  
-                                    Hous_RO = Hous_RO / deflator_ratio_2023_24,  
-                                    Cult_RO = Cult_RO / deflator_ratio_2023_24,  
-                                    Env_RO = Env_RO / deflator_ratio_2023_24,  
-                                    Plan_RO = Plan_RO / deflator_ratio_2023_24,  
-                                    Fire_RO = Fire_RO / deflator_ratio_2023_24,  
-                                    Edu_RO = Edu_RO / deflator_ratio_2023_24,  
-                                    Other_RO = Other_RO / deflator_ratio_2023_24,  
-                                    PH_RO = PH_RO / deflator_ratio_2023_24
-                                ) %>%
-                                pivot_longer(cols = c(ASC_RO, 
-                                                      CSC_RO, 
-                                                      GNSS, 
-                                                      Trans_RO, 
-                                                      Hous_RO, 
-                                                      Cult_RO, 
-                                                      Env_RO, 
-                                                      Plan_RO, 
-                                                      Fire_RO, 
-                                                      Edu_RO, 
-                                                      Other_RO, 
-                                                      PH_RO),
-                                             names_to = "variable", values_to = "value") %>%
-                                group_by(variable) %>%
-                                mutate(indexed_value = value / value[year == '2015/16'] * 100,  
-                                       percentage_increase = (indexed_value[year == '2023/24'] - 100)),
-                            aes(x = year, 
-                                y = indexed_value, 
-                                color = variable, 
-                                linetype = variable,  
-                                group = variable,
-                                alpha = variable)) +  # Map alpha to variable
-    geom_line(linewidth = 1) +  
-    geom_text(data = . %>% filter(year == '2023/24'),
-              aes(label = ifelse(percentage_increase > 0, 
-                                 paste0("+", round(percentage_increase, 1), "% (", variable_names_LGF[variable], ")"), 
-                                 paste0(round(percentage_increase, 1), "% (", variable_names_LGF[variable], ")"))),
-              hjust = -0.1, vjust = 0.5, size = 3, show.legend = FALSE) +
-    scale_color_manual(values = variable_colours_LGF) +
-    scale_linetype_manual(values = c("ASC_RO" = "solid", 
-                                     "CSC_RO" = "solid", 
-                                     "GNSS" = "dotdash", 
-                                     "Trans_RO" = "solid", 
-                                     "Hous_RO" = "solid", 
-                                     "Cult_RO" = "solid", 
-                                     "Env_RO" = "solid", 
-                                     "Plan_RO" = "solid", 
-                                     "Fire_RO" = "solid", 
-                                     "Edu_RO" = "solid", 
-                                     "Other_RO" = "solid", 
-                                     "PH_RO" = "solid")) +  
-    scale_alpha_manual(values = c("ASC_RO" = 1, 
-                                  "CSC_RO" = 1, 
-                                  "GNSS" = 1, 
-                                  "Trans_RO" = 0.3, 
-                                  "Hous_RO" = 0.3, 
-                                  "Cult_RO" = 0.3, 
-                                  "Env_RO" = 0.3, 
-                                  "Plan_RO" = 0.3, 
-                                  "Fire_RO" = 0.3, 
-                                  "Edu_RO" = 1, 
-                                  "Other_RO" = 0.3, 
-                                  "PH_RO" = 0.3)) +  # Adjust alpha values
-    scale_y_continuous(limits = c(60, 220), breaks = seq(60, 220, by = 40)) +
-    labs(title = "Indexed real terms local authority expenditure: RO, 
-All principal LAs, 2015/16 to 2023/24, (2015/16 = 100)",
-         x = NULL,
-         y = "2015/16 = 100",
-         color = NULL,
-         linetype = NULL,
-         alpha = NULL) +  # Remove alpha from legend
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1),
-          legend.position = "none",  # Remove legend
-          plot.title = element_text(hjust = 0.5)) +
-    scale_x_discrete(expand = expansion(mult = c(0.05, 0.25)))  # Add small space to the right
-
-
-
+                            mutate(variable = factor(variable, 
+                                                     levels = c("ASC_perc_CSP", 
+                                                                "CSC_perc_CSP"))),  
+                        aes(x = year, y = value, fill = variable)) +
+      geom_bar(stat = "identity") +
+      scale_fill_manual(values = variable_colours,  
+                        labels = variable_names) +
+      scale_y_continuous(limits = c(0, 0.8), breaks = seq(0, 0.8, by = 0.1), labels = percent_format(accuracy = 1)) +  # Format y-axis labels as percentages
+      labs(title = "Social Care NCE as a proportion of Core Spending Power, 
+  All principal LAs, 2015-16 to 2023-24",
+           x = NULL,
+           y = "% of CSP",
+           fill = NULL,  
+           pattern = NULL) +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "bottom",
+            plot.title = element_text(hjust = 0.5),
+            panel.grid.major.x = element_blank(),  
+            panel.grid.minor.x = element_blank()) +
+      geom_text(aes(label = paste0(round(value * 100), "%")),  
+                position = position_stack(vjust = 0.5), 
+                color = "white", 
+                fontface = "bold") +
+      geom_text(aes(x = year, y = SC_perc_CSP, label = paste0(round(SC_perc_CSP * 100), "%")),  
+                vjust = -0.5,
+                fontface = "bold")
+  
+  ## LG spend line for all services (figure NEW) ----
+  LG_spend_line_all <- ggplot(Eng_data_LGF %>% 
+                                  filter(year >= '2015/16' & year <= '2023/24') %>%
+                                  mutate(
+                                      ASC_RO = ASC_RO / deflator_ratio_2023_24,
+                                      CSC_RO = CSC_RO / deflator_ratio_2023_24,
+                                      GNSS = GNSS / deflator_ratio_2023_24, 
+                                      Trans_RO = Trans_RO / deflator_ratio_2023_24,  
+                                      Hous_RO = Hous_RO / deflator_ratio_2023_24,  
+                                      Cult_RO = Cult_RO / deflator_ratio_2023_24,  
+                                      Env_RO = Env_RO / deflator_ratio_2023_24,  
+                                      Plan_RO = Plan_RO / deflator_ratio_2023_24,  
+                                      Fire_RO = Fire_RO / deflator_ratio_2023_24,  
+                                      Edu_RO = Edu_RO / deflator_ratio_2023_24,  
+                                      Other_RO = Other_RO / deflator_ratio_2023_24,  
+                                      PH_RO = PH_RO / deflator_ratio_2023_24
+                                  ) %>%
+                                  pivot_longer(cols = c(ASC_RO, 
+                                                        CSC_RO, 
+                                                        GNSS, 
+                                                        Trans_RO, 
+                                                        Hous_RO, 
+                                                        Cult_RO, 
+                                                        Env_RO, 
+                                                        Plan_RO, 
+                                                        Fire_RO, 
+                                                        Edu_RO, 
+                                                        Other_RO, 
+                                                        PH_RO),
+                                               names_to = "variable", values_to = "value") %>%
+                                  group_by(variable) %>%
+                                  mutate(indexed_value = value / value[year == '2015/16'] * 100,  
+                                         percentage_increase = (indexed_value[year == '2023/24'] - 100)),
+                              aes(x = year, 
+                                  y = indexed_value, 
+                                  color = variable, 
+                                  linetype = variable,  
+                                  group = variable,
+                                  alpha = variable)) +  # Map alpha to variable
+      geom_line(linewidth = 1) +  
+      geom_text(data = . %>% filter(year == '2023/24'),
+                aes(label = ifelse(percentage_increase > 0, 
+                                   paste0("+", round(percentage_increase, 1), "% (", variable_names_LGF[variable], ")"), 
+                                   paste0(round(percentage_increase, 1), "% (", variable_names_LGF[variable], ")"))),
+                hjust = -0.1, vjust = 0.5, size = 3, show.legend = FALSE) +
+      scale_color_manual(values = variable_colours_LGF) +
+      scale_linetype_manual(values = c("ASC_RO" = "solid", 
+                                       "CSC_RO" = "solid", 
+                                       "GNSS" = "dotdash", 
+                                       "Trans_RO" = "solid", 
+                                       "Hous_RO" = "solid", 
+                                       "Cult_RO" = "solid", 
+                                       "Env_RO" = "solid", 
+                                       "Plan_RO" = "solid", 
+                                       "Fire_RO" = "solid", 
+                                       "Edu_RO" = "solid", 
+                                       "Other_RO" = "solid", 
+                                       "PH_RO" = "solid")) +  
+      scale_alpha_manual(values = c("ASC_RO" = 1, 
+                                    "CSC_RO" = 1, 
+                                    "GNSS" = 1, 
+                                    "Trans_RO" = 0.3, 
+                                    "Hous_RO" = 0.3, 
+                                    "Cult_RO" = 0.3, 
+                                    "Env_RO" = 0.3, 
+                                    "Plan_RO" = 0.3, 
+                                    "Fire_RO" = 0.3, 
+                                    "Edu_RO" = 1, 
+                                    "Other_RO" = 0.3, 
+                                    "PH_RO" = 0.3)) +  # Adjust alpha values
+      scale_y_continuous(limits = c(60, 220), breaks = seq(60, 220, by = 40)) +
+      labs(title = "Indexed real terms local authority expenditure: RO, 
+  All principal LAs, 2015/16 to 2023/24, (2015/16 = 100)",
+           x = NULL,
+           y = "2015/16 = 100",
+           color = NULL,
+           linetype = NULL,
+           alpha = NULL) +  # Remove alpha from legend
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "none",  # Remove legend
+            plot.title = element_text(hjust = 0.5),
+            panel.grid.major.x = element_blank(),  
+            panel.grid.minor.x = element_blank()) +
+      scale_x_discrete(expand = expansion(mult = c(0.05, 0.25)))  # Add small space to the right
+  
+  
+  
 #### Saving graphs ####
 ksp_graphs <- list(ASC_bar, 
                ASC_line, 
