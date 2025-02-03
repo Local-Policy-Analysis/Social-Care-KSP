@@ -1,12 +1,6 @@
-# Read S251 and ASCFR
-S251 <- read_excel("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Analysis/Social care Key Stats Pack/Inputs/S251/S251.xlsx")
-ASCFR <- read_excel("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Analysis/Social care Key Stats Pack/Inputs/ASCFR/ASCFR (NCE) Data Tables 2023-24.xlsx", 
-                    sheet = "T4", 
-                    skip = 6)
-ASCFR <- head(ASCFR, -4)
 
-
-# Convert calendar years to financial years
+## DATA PROCESSING ----
+# Convert calendar years to financial years ----
 csp <- csp %>%
     mutate(year = as.numeric(year),
            year = paste0(year, "/", substr(year + 1, 3, 4)))
@@ -24,7 +18,7 @@ ASCFR <- ASCFR %>%
     rename(ASC_ASCFR = 'Cash Terms')
 
 
-# Join the dataframes
+# Join the dataframes ----
 combined_data <- revenue_data_imputed %>%
     full_join(csp, by = c("ons_code", "year")) %>%  
     full_join(S251 %>% 
@@ -33,7 +27,9 @@ combined_data <- revenue_data_imputed %>%
               by = c("ons_code" = "ons_code", "year")) %>%  
     full_join(population_data %>% 
                   rename(ons_code = ecode), 
-              by = c("ons_code" = "ons_code", "year")) %>%  
+              by = c("ons_code" = "ons_code", "year"))
+# Calculate GNSS and TSE ----
+combined_data <- combined_data %>%
     mutate(GNSS = rowSums(select(., RS_NCE_AdultSocialCare, RS_NCE_ChildrenSocialCare_adj2, RS_NCE_Highwaysandtransportse, 
                                  RS_NCE_HousingservicesGFRAon, RS_NCE_Culturalandrelatedserv, RS_NCE_Environmentalandregulat,
                                  RS_NCE_Planninganddevelopment, RS_NCE_Fireandrescueservices, RS_NCE_Eduservices_adj2nosc, 
@@ -78,7 +74,7 @@ combined_data <- revenue_data_imputed %>%
     ungroup()
 
 
-# England level
+# England level ----
 Eng_data <- combined_data %>%
     filter(class %in% c("UA", "SC", "SD", "MD", "LB")) %>%
     group_by(year) %>%
