@@ -89,6 +89,17 @@ load("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Revenue/Revenue_R/Fin
     
     rm(csp_data)
     
+    csp <- csp %>%
+      mutate(ecode = str_remove(ecode, "O$"),  # Remove 'O' only if it is the last character
+             ons_code = str_remove(ons_code, "O$"))
+    
+    # we have some duplicate year/ ecode/ ons_code combos, so removing
+    csp <- csp %>%
+      group_by(ecode, year) %>%
+      slice_max(csp, n = 1) %>%  # Keep the row with the largest 'csp'
+      ungroup()
+    
+    
     ## S251 ----
 S251 <- read_excel("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Analysis/Social care Key Stats Pack/Inputs/S251/S251.xlsx")
     ## ASC-FR and NHS ----
@@ -96,3 +107,23 @@ ASCFR <- read_excel("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Analys
                     sheet = "T4", 
                     skip = 6)
 ASCFR <- head(ASCFR, -4)
+
+
+
+# Convert calendar years to financial years ----
+csp <- csp %>%
+  mutate(year = as.numeric(year),
+         year = paste0(year, "/", substr(year + 1, 3, 4)))
+
+population_data <- population_data %>%
+  mutate(year = as.numeric(year),
+         year = paste0(year, "/", substr(year + 1, 3, 4)))
+
+S251 <- S251 %>%
+  mutate(year = as.numeric(time_period),
+         year = paste0(substr(time_period, 1, 4), "/", substr(time_period, 5, 6)))
+
+ASCFR <- ASCFR %>% 
+  mutate(year = gsub("-", "/", Year)) %>% 
+  rename(ASC_ASCFR = 'Cash Terms')
+
