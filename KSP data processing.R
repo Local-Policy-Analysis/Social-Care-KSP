@@ -30,7 +30,7 @@ data_nominal <- revenue_data_imputed %>%
                  RS_NCE_Policeservices)
   
  data_nominal <- data_nominal %>%
-  left_join(S251 %>% 
+  full_join(S251 %>% 
               rename(ons_code = new_la_code,  
                      S251_CSC = net_current_expenditure) %>%
               dplyr:: select(ons_code, year, S251_CSC), 
