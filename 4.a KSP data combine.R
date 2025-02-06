@@ -17,6 +17,17 @@ ASCFR <- ASCFR %>%
     mutate(year = gsub("-", "/", Year)) %>% 
     rename(ASC_ASCFR = 'Cash Terms')
 
+S251 <- S251 %>%
+    mutate(new_la_code = ifelse(new_la_code == "E06000060" & year %in% c("2015/16", "2016/17", "2017/18", "2018/19", "2019/20"), 
+                                "E10000002", new_la_code))
+
+population_data <- population_data %>%
+    mutate(ecode = case_when(
+        ecode == "E06000060" & year %in% c("2015/16", "2016/17", "2017/18", "2018/19", "2019/20") ~ "E10000002",
+        ecode == "E06000058" & year %in% c("2011/12", "2012/13", "2013/14", "2014/15", "2015/16", "2016/17", "2017/18", "2018/19") ~ "E06000028",
+        TRUE ~ ecode
+    ))
+
 
 # Join the dataframes ----
 combined_data <- revenue_data_imputed %>%
