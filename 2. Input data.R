@@ -20,7 +20,7 @@ load("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Revenue/Revenue_R/Fin
     ## Population data ----
     population_path <- "Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Analysis/Social care Key Stats Pack/Inputs/Population/myebtablesenglandwales20112023.xlsx"
       population_estimates <- read_excel(population_path, sheet="MYEB1", skip=1)
-    
+      
     # Desired outputs: for each year, child pop, 18+ population (all adult), 65+ population (older adults), and 18-64 (working age adults)
     
     # First, reshape the data to long format and rename columns for ease of RAP. Also get rid of Welsh authorities
@@ -31,6 +31,10 @@ load("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Revenue/Revenue_R/Fin
       rename_with(~ gsub("^laname.*", "authority", .x)) %>%
       filter(country == "E") %>%
       dplyr:: select(-country)
+    
+    population_data <- population_data %>%
+      mutate(year = as.numeric(year),
+             year = paste0(year, "/", substr(year + 1, 3, 4)))
     
     # We are not interested in the sex split so get rid 
     population_data <- population_data %>%
@@ -99,6 +103,9 @@ load("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Revenue/Revenue_R/Fin
       slice_max(csp, n = 1) %>%  # Keep the row with the largest 'csp'
       ungroup()
     
+    csp <- csp %>%
+      mutate(year = as.numeric(year),
+             year = paste0(year, "/", substr(year + 1, 3, 4)))
     
     ## S251 ----
 S251 <- read_excel("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Analysis/Social care Key Stats Pack/Inputs/S251/S251.xlsx")
@@ -106,28 +113,31 @@ S251 <- read_excel("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Analysi
     S251 <- S251 %>%
       mutate(net_current_expenditure = net_current_expenditure/1000)
     
+    S251 <- S251 %>%
+      mutate(year = as.numeric(time_period),
+             year = paste0(substr(time_period, 1, 4), "/", substr(time_period, 5, 6)))
+    
+    #Pierre's manual fix for incorrect ecodes
+    S251 <- S251 %>%
+      mutate(new_la_code = ifelse(new_la_code == "E06000060" & year %in% c("2015/16", "2016/17", "2017/18", "2018/19", "2019/20"), 
+                                  "E10000002", new_la_code))
+    population_data <- population_data %>%
+      mutate(ecode = case_when(
+        ecode == "E06000060" & year %in% c("2015/16", "2016/17", "2017/18", "2018/19", "2019/20") ~ "E10000002",
+        ecode == "E06000058" & year %in% c("2011/12", "2012/13", "2013/14", "2014/15", "2015/16", "2016/17", "2017/18", "2018/19") ~ "E06000028",
+        TRUE ~ ecode
+      ))
+    
     ## ASC-FR and NHS ----
 ASCFR <- read_excel("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Analysis/Social care Key Stats Pack/Inputs/ASCFR/ASCFR (NCE) Data Tables 2023-24.xlsx", 
                     sheet = "T4", 
                     skip = 6)
 ASCFR <- head(ASCFR, -4)
 
-
-
-# Convert calendar years to financial years ----
-csp <- csp %>%
-  mutate(year = as.numeric(year),
-         year = paste0(year, "/", substr(year + 1, 3, 4)))
-
-population_data <- population_data %>%
-  mutate(year = as.numeric(year),
-         year = paste0(year, "/", substr(year + 1, 3, 4)))
-
-S251 <- S251 %>%
-  mutate(year = as.numeric(time_period),
-         year = paste0(substr(time_period, 1, 4), "/", substr(time_period, 5, 6)))
-
 ASCFR <- ASCFR %>% 
   mutate(year = gsub("-", "/", Year)) %>% 
   rename(ASC_ASCFR = 'Cash Terms')
+
+
+
 
