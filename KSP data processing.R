@@ -51,7 +51,7 @@ data_nominal <- data_nominal %>%
   ungroup() %>%
   filter(year %in% all_outturn_years)
 
-# Calculate GNSS and TSE ----
+# Calculate GNSS and TSE and TSC ----
 data_nominal <- data_nominal %>%
   mutate(GNSS = rowSums(select(., RS_NCE_AdultSocialCare, RS_NCE_ChildrenSocialCare_adj2, RS_NCE_Highwaysandtransportse, 
                                RS_NCE_HousingservicesGFRAon, RS_NCE_Culturalandrelatedserv, RS_NCE_Environmentalandregulat,
@@ -62,7 +62,8 @@ data_nominal <- data_nominal %>%
                               RS_NCE_HousingservicesGFRAon, RS_NCE_Culturalandrelatedserv, RS_NCE_Environmentalandregulat,
                               RS_NCE_Planninganddevelopment, RS_NCE_Fireandrescueservices, RS_NCE_Educationservices_adj2, 
                               RS_NCE_Centralservices, RS_NCE_Otherservices, RS_Other_IntegratedTransportAu, 
-                              RS_NCE_Policeservices, RS_NCE_PublicHealth), na.rm = TRUE)) 
+                              RS_NCE_Policeservices, RS_NCE_PublicHealth), na.rm = TRUE)) %>%
+  mutate(TSC = rowSums(select(., RS_NCE_ChildrenSocialCare_adj2, RS_NCE_AdultSocialCare), na.rm=TRUE))
        
        
 
@@ -148,13 +149,206 @@ data_real_2023 %>% filter(ecode=="PRINCIPAL") %>% dplyr::select(year, RS_NCE_Adu
 
 ## ----
 
-##
+#### TABLES ----
+wb <- createWorkbook()
+
+## 1)	ASC NCE (RO): nominal, real and annual real % change ----
+
+table_1 <- bind_rows(
+  data_nominal %>% 
+    filter(authority == "ENGLAND") %>%
+    mutate(source="Nominal"), 
+  data_real_2023 %>% 
+    filter(authority == "ENGLAND") %>%
+    mutate(source="Real")
+) %>%
+  select(year, source, RS_NCE_AdultSocialCare) %>%
+  arrange(year, source) %>%
+  pivot_wider(names_from = source, values_from= RS_NCE_AdultSocialCare) %>%
+  mutate(Nominal = Nominal/1e6,
+         Real = Real/ 1e6,
+        `Real YoY% change` = (Real/ lag(Real)-1)*100) %>%
+  pivot_longer(cols = -year, names_to = "Metric", values_to = "Value") %>%
+  pivot_wider(names_from= year, values_from = Value) %>%
+  mutate(
+    `2022/23 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2022/23`) / `2022/23` * 100, 1),
+      NA_real_
+    ),
+    `2015/16 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2015/16`) / `2015/16` * 100, 1),
+      NA_real_
+    ),
+    `2010/11 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2010/11`) / `2010/11` * 100, 1),
+      NA_real_
+    )
+  ) %>%
+  mutate(across(where(is.numeric), round, 1)) 
+
+addWorksheet(wb, "Table 1")
+writeData(wb, "Table 1", table_1)
+
+## 2)	ASC NCE (ASC-FR): nominal, real and annual real % change ----
+table_2 <- bind_rows(
+  data_nominal %>% 
+    filter(authority == "ENGLAND") %>%
+    mutate(source="Nominal"), 
+  data_real_2023 %>% 
+    filter(authority == "ENGLAND") %>%
+    mutate(source="Real")
+) %>%
+  select(year, source, ASC_ASCFR) %>%
+  arrange(year, source) %>%
+  pivot_wider(names_from = source, values_from= ASC_ASCFR) %>%
+  mutate(Nominal = Nominal/1e6,
+         Real = Real/ 1e6,
+         `Real YoY% change` = (Real/ lag(Real)-1)*100) %>%
+  pivot_longer(cols = -year, names_to = "Metric", values_to = "Value") %>%
+  pivot_wider(names_from= year, values_from = Value) %>%
+  mutate(
+    `2022/23 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2022/23`) / `2022/23` * 100, 1),
+      NA_real_
+    ),
+    `2015/16 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2015/16`) / `2015/16` * 100, 1),
+      NA_real_
+    ),
+    `2010/11 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2010/11`) / `2010/11` * 100, 1),
+      NA_real_
+    )
+  ) %>%
+  mutate(across(where(is.numeric), round, 1)) 
+
+addWorksheet(wb, "Table 2")
+writeData(wb, "Table 2", table_2)
+
+## 3)	ASC NCE including NHS funding and BCF: nominal, real and annual real % change ----
+## 4)	CSC NCE (RO): nominal, real and annual real % change ----
+table_4 <- bind_rows(
+  data_nominal %>% 
+    filter(authority == "ENGLAND") %>%
+    mutate(source="Nominal"), 
+  data_real_2023 %>% 
+    filter(authority == "ENGLAND") %>%
+    mutate(source="Real")
+) %>%
+  select(year, source, RS_NCE_ChildrenSocialCare_adj2) %>%
+  arrange(year, source) %>%
+  pivot_wider(names_from = source, values_from= RS_NCE_ChildrenSocialCare_adj2) %>%
+  mutate(Nominal = Nominal/1e6,
+         Real = Real/ 1e6,
+         `Real YoY% change` = (Real/ lag(Real)-1)*100) %>%
+  pivot_longer(cols = -year, names_to = "Metric", values_to = "Value") %>%
+  pivot_wider(names_from= year, values_from = Value) %>%
+  mutate(
+    `2022/23 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2022/23`) / `2022/23` * 100, 1),
+      NA_real_
+    ),
+    `2015/16 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2015/16`) / `2015/16` * 100, 1),
+      NA_real_
+    ),
+    `2010/11 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2010/11`) / `2010/11` * 100, 1),
+      NA_real_
+    )
+  ) %>%
+  mutate(across(where(is.numeric), round, 1)) 
+
+addWorksheet(wb, "Table 4")
+writeData(wb, "Table 4", table_4)
+
+## 5)	CSC S251: nominal, real and annual real % change ----
+table_5 <- bind_rows(
+  data_nominal %>% 
+    filter(authority == "ENGLAND") %>%
+    mutate(source="Nominal"), 
+  data_real_2023 %>% 
+    filter(authority == "ENGLAND") %>%
+    mutate(source="Real")
+) %>%
+  select(year, source, S251_CSC) %>%
+  arrange(year, source) %>%
+  pivot_wider(names_from = source, values_from= S251_CSC) %>%
+  mutate(Nominal = Nominal/1e6,
+         Real = Real/ 1e6,
+         `Real YoY% change` = (Real/ lag(Real)-1)*100) %>%
+  pivot_longer(cols = -year, names_to = "Metric", values_to = "Value") %>%
+  pivot_wider(names_from= year, values_from = Value) %>%
+  mutate(
+    `2022/23 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2022/23`) / `2022/23` * 100, 1),
+      NA_real_
+    ),
+    `2015/16 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2015/16`) / `2015/16` * 100, 1),
+      NA_real_
+    ),
+    `2010/11 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2010/11`) / `2010/11` * 100, 1),
+      NA_real_
+    )
+  ) %>%
+  mutate(across(where(is.numeric), round, 1)) 
+
+addWorksheet(wb, "Table 5")
+writeData(wb, "Table 5", table_5)
+
+## 6)	Total Social Care NCE (RO): nominal, real and annual real % change ----
+table_6 <- bind_rows(
+  data_nominal %>% 
+    filter(authority == "ENGLAND") %>%
+    mutate(source="Nominal"), 
+  data_real_2023 %>% 
+    filter(authority == "ENGLAND") %>%
+    mutate(source="Real")
+) %>%
+  select(year, source, TSC) %>%
+  arrange(year, source) %>%
+  pivot_wider(names_from = source, values_from= TSC) %>%
+  mutate(Nominal = Nominal/1e6,
+         Real = Real/ 1e6,
+         `Real YoY% change` = (Real/ lag(Real)-1)*100) %>%
+  pivot_longer(cols = -year, names_to = "Metric", values_to = "Value") %>%
+  pivot_wider(names_from= year, values_from = Value) %>%
+  mutate(
+    `2022/23 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2022/23`) / `2022/23` * 100, 1),
+      NA_real_
+    ),
+    `2015/16 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2015/16`) / `2015/16` * 100, 1),
+      NA_real_
+    ),
+    `2010/11 to 2023/24 % Change` = ifelse(
+      Metric %in% c("Nominal", "Real"),
+      round((`2023/24` - `2010/11`) / `2010/11` * 100, 1),
+      NA_real_
+    )
+  ) %>%
+  mutate(across(where(is.numeric), round, 1)) 
+
+addWorksheet(wb, "Table 6")
+writeData(wb, "Table 6", table_6)
 
 
-
-
-#### ----
-
-## one table in nominal terms
-## one table in real terms (most recent year)
-## one table in real terms (2015/16=100)
+saveWorkbook(wb, "Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Analysis/Social care Key Stats Pack/Tables/tables_2023.xlsx", overwrite = TRUE)
+## ----

@@ -102,6 +102,10 @@ load("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Revenue/Revenue_R/Fin
     
     ## S251 ----
 S251 <- read_excel("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Analysis/Social care Key Stats Pack/Inputs/S251/S251.xlsx")
+    #S251 is in £'s, but we need in £1000's for consistency
+    S251 <- S251 %>%
+      mutate(net_current_expenditure = net_current_expenditure/1000)
+    
     ## ASC-FR and NHS ----
 ASCFR <- read_excel("Q:/ADD Directorate/Local Policy Analysis/LGF/LA data/Analysis/Social care Key Stats Pack/Inputs/ASCFR/ASCFR (NCE) Data Tables 2023-24.xlsx", 
                     sheet = "T4", 
